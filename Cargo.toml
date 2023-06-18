@@ -1,0 +1,8 @@
+[package]
+name = "chip8"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rodio = "0.17.1"
+termion = "2.0.1"
