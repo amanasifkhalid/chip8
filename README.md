@@ -31,5 +31,6 @@ COSMAC:        QWERTY:
 7 8 9 E        A S D F
 A 0 B F        Z X C V
 ```
-- The CHIP-8 specification differentiates between key up and down actions, whereas ANSI terminals don't. Thus,
-input-critical ROMs may run jankily.
+- The CHIP-8 specification differentiates between key up and down actions, whereas ANSI terminals don't.
+Key up/down events are simulated using timers to signal when a pressed key is "released," but some
+input-critical ROMs may still run jankily.
