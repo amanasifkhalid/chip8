@@ -33,7 +33,7 @@ pub struct Keypad {
 }
 
 impl Keypad {
-    pub fn new() -> Keypad {
+    pub fn new() -> Self {
         Keypad {
             input: termion::async_stdin().keys(),
             key_states: [0; NUM_KEYS],

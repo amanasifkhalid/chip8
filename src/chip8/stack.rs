@@ -7,7 +7,7 @@ pub struct Stack {
 }
 
 impl Stack {
-    pub fn new() -> Stack {
+    pub fn new() -> Self {
         Stack {
             mem: [0; STACK_SIZE],
             ptr: 0,

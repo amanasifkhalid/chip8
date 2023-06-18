@@ -5,7 +5,7 @@ pub struct Rng {
 }
 
 impl Rng {
-    pub fn new() -> Rng {
+    pub fn new() -> Self {
         Rng {
             seed: time::SystemTime::now()
                 .duration_since(time::UNIX_EPOCH)

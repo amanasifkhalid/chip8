@@ -1,6 +1,5 @@
 use std::io;
 use std::io::Read;
-use std::io::Write;
 use std::time;
 
 mod display;
@@ -112,9 +111,8 @@ impl VM {
     }
 
     pub fn run(mut self) {
-        // Hide cursor, and clear all preceding output
-        let mut hide_cursor = termion::cursor::HideCursor::from(io::stdout().lock());
-        write!(hide_cursor, "{}", termion::clear::BeforeCursor).unwrap();
+        // Acquire stdout lock continuously for slight performance gain
+        let _handle = io::stdout().lock();
 
         // Used to time each frame to get ~60Hz runtime
         const FRAME_LENGTH: time::Duration = time::Duration::new(0, 1_000_000_000 / 60);
@@ -529,6 +527,7 @@ impl VM {
     #[cfg(debug_assertions)]
     fn print_state(&mut self) {
         if self._debug_mode {
+            use std::io::Write;
             use termion::event::Key;
 
             // This will draw an empty frame if nothing has been written
@@ -536,10 +535,11 @@ impl VM {
             // jump down several lines due to later frame renders
             self.display.draw();
 
-            let mut handle = io::stdout();
+            // Share stdout handle into alternate screen
+            let output = self.display.borrow_output_buf();
 
             write!(
-                handle,
+                output,
                 "Next opcode: 0x{:X}, PC: 0x{:X}, Index register: 0x{:X}\r\n",
                 self.opcode, self.pc, self.index
             )
@@ -547,7 +547,7 @@ impl VM {
 
             if (self.index as usize) < FONTS.len() && self.index % 5 == 0 {
                 write!(
-                    handle,
+                    output,
                     "(Index register pointing to sprite {:X})\r\n",
                     self.index / 5
                 )
@@ -555,30 +555,30 @@ impl VM {
             }
 
             write!(
-                handle,
+                output,
                 "Delay timer: 0x{:X}, Sound timer: 0x{:X}\r\n\n",
                 self.delay_timer, self.sound_timer
             )
             .unwrap();
 
-            write!(handle, "Registers: {:X?}\r\n", self.regs).unwrap();
-            write!(handle, "Stack: {:X?}\r\n", self.stack).unwrap();
+            write!(output, "Registers: {:X?}\r\n", self.regs).unwrap();
+            write!(output, "Stack: {:X?}\r\n", self.stack).unwrap();
 
             if (self.pc as usize) < MEM_SIZE {
                 let upper_bound = MEM_SIZE.min((self.pc + 16) as usize);
                 write!(
-                    handle,
+                    output,
                     "Memory snippet [PC, 0x{:X}): {:X?}\r\n\n",
                     upper_bound,
                     &self.mem[(self.pc as usize)..upper_bound]
                 )
                 .unwrap();
             } else {
-                write!(handle, "PC out of memory bounds\r\n\n").unwrap();
+                write!(output, "PC out of memory bounds\r\n\n").unwrap();
             }
 
-            write!(handle, "Press 's' to step or c' to continue\r\n").unwrap();
-            handle.flush().unwrap();
+            write!(output, "Press 's' to step or c' to continue\r\n").unwrap();
+            output.flush().unwrap();
 
             loop {
                 if let Some(Ok(key)) = self.keypad.read_stdin() {
@@ -593,14 +593,9 @@ impl VM {
                 }
             }
 
-            write!(
-                handle,
-                "{}{}",
-                termion::cursor::Goto(1, 1),
-                termion::clear::AfterCursor
-            )
-            .unwrap();
-            handle.flush().unwrap();
+            // Clear debug output
+            write!(output, "{}", termion::clear::All).unwrap();
+            output.flush().unwrap();
         }
     }
 
