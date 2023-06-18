@@ -1,4 +1,4 @@
-![](chip8-demo.mp4)
+https://github.com/amanasifkhalid/chip8/assets/58230338/825dc53a-db1d-46f7-8ff0-44f95f629c9d
 
 A lightweight CHIP-8 emulator that runs directly in your terminal -- no OpenGL required!
 
