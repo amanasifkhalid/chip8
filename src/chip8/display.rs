@@ -35,59 +35,63 @@ impl Display {
         }
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self) -> Result<(), std::io::Error> {
         // Reset cursor
-        write!(self.output, "{}", termion::cursor::Goto(1, 1)).unwrap();
+        write!(self.output, "{}", termion::cursor::Goto(1, 1))?;
 
-        self.draw_top_border();
+        self.draw_top_border()?;
 
         // Write frame
         for row in self.frame_buffer.iter() {
-            write!(self.output, "{}{} ", ON_PIXEL, ON_PIXEL).unwrap();
+            write!(self.output, "{}{} ", ON_PIXEL, ON_PIXEL)?;
             for pixel in row {
-                write!(self.output, "{}", pixel).unwrap();
+                write!(self.output, "{}", pixel)?;
             }
 
-            write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL).unwrap();
+            write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL)?;
         }
 
-        self.draw_bottom_border();
+        self.draw_bottom_border()?;
 
         // One last carriage return
-        write!(self.output, "\r\n\n").unwrap();
+        write!(self.output, "\r\n\n")?;
 
         // Flush the entire frame to stdout, with just one syscall
-        self.output.flush().unwrap();
+        self.output.flush()?;
+        Ok(())
     }
 
-    fn draw_top_border(&mut self) {
+    fn draw_top_border(&mut self) -> Result<(), std::io::Error> {
         // Draw top border
         for _ in 0..(DISPLAY_WIDTH + 6) {
-            write!(self.output, "{}", ON_PIXEL).unwrap();
+            write!(self.output, "{}", ON_PIXEL)?;
         }
 
         // Write extra padding below top border
-        write!(self.output, "\r\n{}{} ", ON_PIXEL, ON_PIXEL).unwrap();
+        write!(self.output, "\r\n{}{} ", ON_PIXEL, ON_PIXEL)?;
         for _ in 0..DISPLAY_WIDTH {
-            write!(self.output, "{}", OFF_PIXEL).unwrap();
+            write!(self.output, "{}", OFF_PIXEL)?;
         }
 
-        write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL).unwrap();
+        write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL)?;
+        Ok(())
     }
 
-    fn draw_bottom_border(&mut self) {
+    fn draw_bottom_border(&mut self) -> Result<(), std::io::Error> {
         // Write extra padding above bottom border
-        write!(self.output, "{}{} ", ON_PIXEL, ON_PIXEL).unwrap();
+        write!(self.output, "{}{} ", ON_PIXEL, ON_PIXEL)?;
         for _ in 0..DISPLAY_WIDTH {
-            write!(self.output, "{}", OFF_PIXEL).unwrap();
+            write!(self.output, "{}", OFF_PIXEL)?;
         }
 
-        write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL).unwrap();
+        write!(self.output, " {}{}\r\n", ON_PIXEL, ON_PIXEL)?;
 
         // Draw bottom border
         for _ in 0..(DISPLAY_WIDTH + 6) {
-            write!(self.output, "{}", ON_PIXEL).unwrap();
+            write!(self.output, "{}", ON_PIXEL)?;
         }
+
+        Ok(())
     }
 
     // Only let debug mode use the output buffer in debug builds

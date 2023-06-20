@@ -135,7 +135,7 @@ impl VM {
 
             // One instruction per frame is sluggish
             for _ in 0..INSTR_PER_FRAME {
-                self.print_state(); // No-op in release builds
+                self.print_state().expect("Failed to print state!"); // No-op in release builds
                 self.exec_instr();
             }
 
@@ -143,7 +143,7 @@ impl VM {
 
             if self.should_draw {
                 self.should_draw = false;
-                self.display.draw();
+                self.display.draw().expect("Failed to draw frame!");
             }
 
             // Wait for end of frame to enforce 60Hz refresh rate
@@ -525,7 +525,7 @@ impl VM {
     }
 
     #[cfg(debug_assertions)]
-    fn print_state(&mut self) {
+    fn print_state(&mut self) -> Result<(), std::io::Error> {
         if self._debug_mode {
             use std::io::Write;
             use termion::event::Key;
@@ -533,7 +533,7 @@ impl VM {
             // This will draw an empty frame if nothing has been written
             // to the frame buffer yet, ensuring the debug output doesn't
             // jump down several lines due to later frame renders
-            self.display.draw();
+            self.display.draw().expect("Failed to draw frame!");
 
             // Share stdout handle into alternate screen
             let output = self.display.borrow_output_buf();
@@ -542,27 +542,24 @@ impl VM {
                 output,
                 "Next opcode: 0x{:X}, PC: 0x{:X}, Index register: 0x{:X}\r\n",
                 self.opcode, self.pc, self.index
-            )
-            .unwrap();
+            )?;
 
             if (self.index as usize) < FONTS.len() && self.index % 5 == 0 {
                 write!(
                     output,
                     "(Index register pointing to sprite {:X})\r\n",
                     self.index / 5
-                )
-                .unwrap();
+                )?;
             }
 
             write!(
                 output,
                 "Delay timer: 0x{:X}, Sound timer: 0x{:X}\r\n\n",
                 self.delay_timer, self.sound_timer
-            )
-            .unwrap();
+            )?;
 
-            write!(output, "Registers: {:X?}\r\n", self.regs).unwrap();
-            write!(output, "Stack: {:X?}\r\n", self.stack).unwrap();
+            write!(output, "Registers: {:X?}\r\n", self.regs)?;
+            write!(output, "Stack: {:X?}\r\n", self.stack)?;
 
             if (self.pc as usize) < MEM_SIZE {
                 let upper_bound = MEM_SIZE.min((self.pc + 16) as usize);
@@ -571,14 +568,13 @@ impl VM {
                     "Memory snippet [PC, 0x{:X}): {:X?}\r\n\n",
                     upper_bound,
                     &self.mem[(self.pc as usize)..upper_bound]
-                )
-                .unwrap();
+                )?;
             } else {
-                write!(output, "PC out of memory bounds\r\n\n").unwrap();
+                write!(output, "PC out of memory bounds\r\n\n")?;
             }
 
-            write!(output, "Press 's' to step or c' to continue\r\n").unwrap();
-            output.flush().unwrap();
+            write!(output, "Press 's' to step or c' to continue\r\n")?;
+            output.flush()?;
 
             loop {
                 if let Some(Ok(key)) = self.keypad.read_stdin() {
@@ -594,12 +590,16 @@ impl VM {
             }
 
             // Clear debug output
-            write!(output, "{}", termion::clear::All).unwrap();
-            output.flush().unwrap();
+            write!(output, "{}", termion::clear::All)?;
+            output.flush()?;
         }
+
+        Ok(())
     }
 
     // No-op in release builds
     #[cfg(not(debug_assertions))]
-    fn print_state(&self) {}
+    fn print_state(&self) -> Result<(), std::io::Error> {
+        Ok(())
+    }
 }

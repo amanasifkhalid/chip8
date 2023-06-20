@@ -1,11 +1,11 @@
 mod chip8;
 
-use std::env;
-use std::fs;
-use std::io;
+use std::env::args;
+use std::fs::File;
+use std::io::BufReader;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = args().collect();
     if args.len() == 1 || args.len() > 4 {
         eprintln!("USAGE: cargo run [--release] -- <ROM path> [--legacy] [--debug]");
         return;
@@ -19,8 +19,8 @@ fn main() {
     // displaying the emulator's current state (memory, registers, etc.).
     let debug_mode = args.contains(&String::from("--debug"));
 
-    let rom_file = fs::File::open(&args[1]).expect("Cannot open ROM file!");
-    let rom_reader = io::BufReader::new(rom_file);
+    let rom_file = File::open(&args[1]).expect("Cannot open ROM file!");
+    let rom_reader = BufReader::new(rom_file);
     let vm = chip8::VM::new(rom_reader, legacy_mode, debug_mode);
     vm.run();
 }
