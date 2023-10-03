@@ -550,6 +550,8 @@ impl VM {
                     "(Index register pointing to sprite {:X})\r\n",
                     self.index / 5
                 )?;
+            } else {
+                write!(output, "\n")?;
             }
 
             write!(
@@ -573,7 +575,7 @@ impl VM {
                 write!(output, "PC out of memory bounds\r\n\n")?;
             }
 
-            write!(output, "Press 's' to step or c' to continue\r\n")?;
+            write!(output, "Press 's' to step or 'c' to continue\r\n")?;
             output.flush()?;
 
             loop {
