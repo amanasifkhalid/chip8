@@ -22,7 +22,7 @@ the bug in your ROM (or in my emulator...).
 ## Limitations
 - Termion only supports ANSI-compliant terminals; minimalism was prioritized over portability here. Sorry, Windows users!
 - This emulator uses the following keyboard mapping from the original COSMAC VIP layout to QWERTY keyboards,
-which hasn't been tested on other layouts where it might be awkward:
+and hasn't been tested on other layouts where it might be awkward:
 
 ```
 COSMAC:        QWERTY:
